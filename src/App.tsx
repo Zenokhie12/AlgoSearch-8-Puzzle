@@ -280,7 +280,7 @@ export default function App() {
       <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
-            <Cpu className="w-8 h-8 text-blue-600" />
+            <Cpu className="w-12 h-12 text-blue-600" />
             8-Puzzle Algo Search Solver
           </h1>
           <p className="text-slate-500 mt-1">Multi-algorithm Uninformed & heuristic state-space search explorer.</p>
@@ -487,7 +487,7 @@ export default function App() {
           </div>
           <div>
             <h3 className="font-bold text-blue-900">Multi-Search Engine Documentation</h3>
-            <p className="text-sm text-blue-700/80 mt-1 max-w-2xl">
+            <p className="text-sm text-blue-700/90 mt-1 max-w-2xl">
               This engine supports Breadth-First Search (complete, optimal), Depth-First Search (explorative, non-optimal), 
               Best-First Search (greedy heuristic), and A* Search (optimal with consistent heuristics). 
               Manhattan distance is used as the primary heuristic for informed searches to estimate cost to reach the goal state ({GOAL_STATE}).
