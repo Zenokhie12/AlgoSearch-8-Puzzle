@@ -53,6 +53,12 @@ export default function App() {
   const [path, setPath] = useState<string[]>([]);
   const [currentStep, setCurrentStep] = useState(0);
   const [logs, setLogs] = useState<string[]>([]);
+  const [metrics, setMetrics] = useState<{
+    duration: number;
+    nodesExpanded: number;
+    searchDepth: number;
+    pathCost: number;
+  } | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   // Auto-scroll logs
@@ -64,24 +70,28 @@ export default function App() {
 
   const runBFS = async () => {
     setIsSolving(true);
+    setMetrics(null);
+    const startTime = performance.now();
     setLogs(prev => [...prev, `> Starting BFS Search...`, `> Initial State: ${board}`]);
     
     // BFS Implementation
-    const queue: PuzzleState[] = [{ board, parent: null, move: "" }];
+    const queue: { s: PuzzleState; depth: number }[] = [{ s: { board, parent: null, move: "" }, depth: 0 }];
     const visited = new Set<string>([board]);
     let solvedState: PuzzleState | null = null;
-    let iterations = 0;
+    let nodesExpanded = 0;
+    let maxDepth = 0;
 
     // Small delay to allow logging to breathe
     await new Promise(r => setTimeout(r, 100));
 
     while (queue.length > 0) {
-      const current = queue.shift()!;
-      iterations++;
+      const { s: current, depth } = queue.shift()!;
+      nodesExpanded++;
+      maxDepth = Math.max(maxDepth, depth);
 
       // Log to pseudo-terminal (limited rate)
-      if (iterations % 10 === 0) {
-        setLogs(prev => [...prev.slice(-40), `Visiting: ${current.board}`]);
+      if (nodesExpanded % 50 === 0) {
+        setLogs(prev => [...prev.slice(-40), `Visiting: ${current.board} (Nodes: ${nodesExpanded})`]);
       }
 
       if (current.board === GOAL_STATE) {
@@ -111,16 +121,18 @@ export default function App() {
           
           if (!visited.has(nextBoard)) {
             visited.add(nextBoard);
-            queue.push({ board: nextBoard, parent: current, move });
+            queue.push({ s: { board: nextBoard, parent: current, move }, depth: depth + 1 });
           }
         }
       }
       
-      // Prevent blocking the UI thread on very deep searches
-      if (iterations % 500 === 0) {
+      // Prevent blocking the UI thread
+      if (nodesExpanded % 1000 === 0) {
         await new Promise(r => setTimeout(r, 0));
       }
     }
+
+    const endTime = performance.now();
 
     if (solvedState) {
       const solutionPath: string[] = [];
@@ -131,7 +143,15 @@ export default function App() {
       }
       const finalPath = solutionPath.reverse();
       setPath(finalPath);
-      setLogs(prev => [...prev, `> Solved! Path length: ${finalPath.length - 1} steps.`]);
+      
+      setMetrics({
+        duration: endTime - startTime,
+        nodesExpanded,
+        searchDepth: maxDepth,
+        pathCost: finalPath.length - 1
+      });
+
+      setLogs(prev => [...prev, `> Solved! Final Path Cost: ${finalPath.length - 1} steps.`]);
       
       // Animate steps
       for (let i = 0; i < finalPath.length; i++) {
@@ -147,6 +167,7 @@ export default function App() {
   const handleShuffle = () => {
     setBoard(generateRandomSolvableState());
     setPath([]);
+    setMetrics(null);
     setCurrentStep(0);
     setLogs(prev => [...prev, `> Board shuffled.`]);
   };
@@ -238,17 +259,56 @@ export default function App() {
 
         {/* Stats & Terminal */}
         <div className="flex flex-col gap-6">
-          {/* Solution Info */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm">
-              <div className="text-xs text-slate-400 font-bold uppercase mb-1">Path Steps</div>
-              <div className="text-2xl font-bold text-slate-800">{path.length > 0 ? path.length - 1 : 0}</div>
+          {/* Results Summary */}
+          {metrics && (
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="bg-emerald-50 border border-emerald-200 rounded-2xl p-6 shadow-sm shadow-emerald-100/50"
+            >
+              <h3 className="text-emerald-900 font-bold text-lg mb-4 flex items-center justify-between">
+                <span>Results</span>
+                <span className="text-xl">Solution exists! 😄</span>
+              </h3>
+              
+              <div className="space-y-3 font-medium">
+                <div className="flex justify-between items-center text-emerald-800">
+                  <span className="text-sm">Runtime Duration:</span>
+                  <span className="font-mono bg-emerald-100 px-2 py-0.5 rounded">{(metrics.duration / 1000).toFixed(4)} seconds</span>
+                </div>
+                <div className="flex justify-between items-center text-emerald-800">
+                  <span className="text-sm">Nodes Expanded:</span>
+                  <span className="font-mono bg-emerald-100 px-2 py-0.5 rounded">{metrics.nodesExpanded}</span>
+                </div>
+                <div className="flex justify-between items-center text-emerald-800">
+                  <span className="text-sm">Search Depth:</span>
+                  <span className="font-mono bg-emerald-100 px-2 py-0.5 rounded">{metrics.searchDepth}</span>
+                </div>
+                <div className="flex justify-between items-center text-emerald-800">
+                  <span className="text-sm">Path Cost:</span>
+                  <span className="font-mono bg-emerald-100 px-2 py-0.5 rounded">{metrics.pathCost}</span>
+                </div>
+                <div className="flex justify-between items-center text-emerald-800 pt-2 border-t border-emerald-200/50">
+                  <span className="text-sm font-bold">Path to Goal:</span>
+                  <span className="font-mono text-emerald-600 font-bold tracking-wider">{GOAL_STATE}</span>
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          {/* Detailed Stats */}
+          {!metrics && (
+            <div className="grid grid-cols-2 gap-4">
+              <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm">
+                <div className="text-xs text-slate-400 font-bold uppercase mb-1">Path Steps</div>
+                <div className="text-2xl font-bold text-slate-800">{path.length > 0 ? path.length - 1 : 0}</div>
+              </div>
+              <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm">
+                <div className="text-xs text-slate-400 font-bold uppercase mb-1">Inversion Count</div>
+                <div className="text-2xl font-bold text-slate-800">{getInversionCount(board)}</div>
+              </div>
             </div>
-            <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm">
-              <div className="text-xs text-slate-400 font-bold uppercase mb-1">Inversion Count</div>
-              <div className="text-2xl font-bold text-slate-800">{getInversionCount(board)}</div>
-            </div>
-          </div>
+          )}
 
           {/* Pseudo-Terminal */}
           <div className="h-[400px] bg-slate-900 rounded-2xl p-4 flex flex-col font-mono text-[13px] shadow-2xl relative overflow-hidden group border border-slate-800">
