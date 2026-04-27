@@ -184,7 +184,7 @@ class PuzzleGUI:
             
             # Info text
             info = self.ui_font.render(f"State: {'Goal' if self.current_board == GOAL_STATE else 'Mixed'}", True, TEXT_COLOR)
-            self.screen.blit(info, (20, HEIGHT - 80))
+            self.screen.blit(info, (20, HEIGHT - 120))
 
             pygame.display.flip()
             self.clock.tick(FPS)
