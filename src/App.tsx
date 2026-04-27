@@ -7,8 +7,7 @@ import {
   FileCode, 
   ChevronRight, 
   CheckCircle2, 
-  Cpu, 
-  Download 
+  Cpu
 } from 'lucide-react';
 
 // --- Constants & Types ---
@@ -152,10 +151,6 @@ export default function App() {
     setLogs(prev => [...prev, `> Board shuffled.`]);
   };
 
-  const downloadPythonScript = () => {
-    window.open('/8_puzzle_bfs.py', '_blank');
-  };
-
   return (
     <div className="min-h-screen p-4 md:p-8 flex flex-col gap-8 max-w-6xl mx-auto font-sans">
       {/* Header */}
@@ -168,13 +163,13 @@ export default function App() {
           <p className="text-slate-500 mt-1">Expert implementation of Breadth-First Search optimization.</p>
         </div>
         <div className="flex gap-2">
-          <button 
+          {/*<button 
             onClick={downloadPythonScript}
             className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors shadow-sm"
           >
             <Download className="w-4 h-4" />
             Download .py
-          </button>
+          </button>*/}
           <button 
             onClick={handleShuffle}
             disabled={isSolving}
@@ -256,8 +251,8 @@ export default function App() {
           </div>
 
           {/* Pseudo-Terminal */}
-          <div className="flex-1 bg-slate-900 rounded-2xl p-4 flex flex-col font-mono text-[13px] shadow-2xl relative overflow-hidden group">
-            <div className="flex items-center gap-2 mb-3 border-b border-slate-800 pb-2">
+          <div className="h-[400px] bg-slate-900 rounded-2xl p-4 flex flex-col font-mono text-[13px] shadow-2xl relative overflow-hidden group border border-slate-800">
+            <div className="flex items-center gap-2 mb-3 border-b border-slate-800 pb-2 flex-none">
               <Terminal className="w-4 h-4 text-slate-500" />
               <span className="text-slate-500 font-medium">SYSTEM LOGS</span>
               <div className="flex gap-1.5 ml-auto">
@@ -268,22 +263,22 @@ export default function App() {
             </div>
             <div 
               ref={scrollRef}
-              className="flex-1 overflow-y-auto terminal-scroll text-slate-300 space-y-1 h-[300px]"
+              className="flex-1 overflow-y-auto terminal-scroll text-slate-300 space-y-1 pr-2"
             >
               {logs.map((log, i) => (
                 <div key={i} className="flex gap-2">
-                  <span className="text-slate-700">{i + 1}</span>
+                  <span className="text-slate-700 w-6 text-right flex-none uppercase">{i + 1}</span>
                   <span className={log.startsWith('>') ? 'text-blue-400 font-bold' : ''}>{log}</span>
                 </div>
               ))}
               {isSolving && (
                 <div className="flex gap-2 animate-pulse">
-                  <span className="text-slate-700">{logs.length + 1}</span>
+                  <span className="text-slate-700 w-6 text-right flex-none">{logs.length + 1}</span>
                   <span className="text-slate-500 italic">Searching next level...</span>
                 </div>
               )}
               {logs.length === 0 && (
-                <div className="text-slate-600 italic">Waitings for BFS execution...</div>
+                <div className="text-slate-600 italic py-2">Waiting for BFS execution...</div>
               )}
             </div>
           </div>
