@@ -393,7 +393,7 @@ export default function App() {
               <h3 className={`${metrics.hasSolution ? 'text-emerald-900' : 'text-rose-900'} font-bold text-lg mb-4 flex items-center justify-between`}>
                 <span>Results</span>
                 <span className="text-xl">
-                  {metrics.hasSolution ? 'Solution exists! 😄' : "Solution doesn't exist 😔"}
+                  {metrics.hasSolution ? 'Solution exists! ✅' : "Solution doesn't exist ⛔"}
                 </span>
               </h3>
               
